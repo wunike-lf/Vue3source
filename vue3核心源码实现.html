@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="./vue.global.js"></script>
+    <script src="./vue响应式设计核心api.js"></script>
+    <script src="./渲染器设计.js"></script>
+    <!-- <script src="./编译器实现.js"></script> -->
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      // console.log(123,window)
+      // const { compile,h }  = Vue
+      
+      
+      const {
+        effect,
+        ref,
+        toRefs,
+        reactive,
+        shallowReactive,
+        shallowReadonly,
+        proxyRefs,
+      } = MyVue;
+      const { renderer, normalizeProps,onMounted } = VueRender;
+
+
+
+      let bol = ref(false);
+      let vnode1;
+
+      let app = document.getElementById("app");
+
+      // effect(() => {
+      //   // console.log("effect执行重新渲染", bol.value, vnode1);
+      //   renderer.render(vnode1 = {
+      //     // 节点类型
+      //     type: "div",
+      //     key: "123",
+      //     // 节点属性
+      //     props: normalizeProps({
+      //       id: bol.value ? "box" : "",
+      //       // foo bar baz
+      //       class: ["foo bar", { baz: false }],
+      //       style: ["background: #ccc", { color: bol.value ? "red" : "green" }],
+      //       onClick: [
+      //         () => {
+      //           console.log("p的点击事件1");
+
+      //           vnode1 = {
+      //             // 节点类型
+      //             type: "div",
+      //             key: "123",
+      //             // 节点属性
+      //             props: normalizeProps({
+      //               id: "box",
+      //               // foo bar baz
+      //               class: ["foo bar", { baz: false }],
+      //               style: ["background: #ccc", { color: "red" }],
+      //               onClick: [
+      //                 () => {
+      //                   console.log("p的点击事件1");
+      //                   bol.value = true;
+      //                 },
+      //               ],
+      //             }),
+      //             children: [
+      //               {
+      //                 type: "div",
+      //                 key: "p-1",
+      //                 children: "p-1",
+      //               },
+      //               {
+      //                 type: "div",
+      //                 key: "p-3",
+      //                 children: "p-3",
+      //               },
+      //               {
+      //                 type: "div",
+      //                 key: "p-4",
+      //                 children: "p-4",
+      //               },
+      //               {
+      //                 type: "div",
+      //                 key: "p-2",
+      //                 children: "p-2",
+      //               },
+      //               {
+      //                 type: "div",
+      //                 key: "p-7",
+      //                 children: "p-7",
+      //               },
+      //               {
+      //                 type: "div",
+      //                 key: "p-5",
+      //                 children: "p-5",
+      //               },
+      //             ],
+      //           };
+      //           bol.value = true;
+      //         },
+      //       ],
+      //     }),
+      //     children: [
+      //       {
+      //         type: "div",
+      //         key: "p-1",
+      //         children: "p-1",
+      //       },
+      //       {
+      //         type: "div",
+      //         key: "p-2",
+      //         children: "p-2",
+      //       },
+      //       {
+      //         type: "div",
+      //         key: "p-3",
+      //         children: "p-3",
+      //       },
+      //       {
+      //         type: "div",
+      //         key: "p-4",
+      //         children: "p-4",
+      //       },
+      //       {
+      //         type: "div",
+      //         key: "p-6",
+      //         children: "p-6",
+      //       },
+      //       {
+      //         type: "div",
+      //         key: "p-5",
+      //         children: "p-5",
+      //       },
+      //     ],
+      //   }, app);
+      // });
+      let MyComponent = {
+        name: "myComponent",
+        props: {
+          title: String,
+        },
+        setup(props,setupContext) {
+          const age = ref(18);
+          const obj = reactive({ name: "晓明" });
+          let { slots,emit,attrs,expose } = setupContext
+          console.log('插槽，emit', slots, emit);
+          emit("change", "child");
+          const count = ref(0);
+
+          onMounted(() => {
+            console.log("child挂载1");
+          });
+          onMounted(() => {
+            console.log("child挂载2");
+          });
+          // 返回一个函数 该函数将作为渲染函数
+          return function () {
+            return {
+              type: "div",
+              children: [
+                slots.header(),
+              {
+                type: 'div',
+                children: `姓名---------${this.name}+${age.value}`
+              },
+              slots.body(),
+              slots.footer(),
+            ],
+            };
+          };
+
+         
+
+          // 返回对象对象中的数据会暴露在渲染函数中
+          // return proxyRefs({age,...toRefs(obj)})
+        },
+        render() {
+          console.log(5555, this);
+          // debugger
+          return {
+            type: "div",
+            children: [
+              {
+                type: 'div',
+                children: `姓名---------${this.name}+${this.age}`
+              }
+            ],
+          };
+        },
+        data() {
+          return {
+            name: "小明",
+          };
+        },
+        beforeCreate() {},
+        created() {
+          console.log('created');
+        },
+        beforeMount() {},
+        mounted() {},
+        beforeUpdate() {},
+        updated() {},
+      };
+
+      let ComVnode = {
+        type: MyComponent,
+        props: {
+          title: "父组件的data",
+          val: "123",
+          onChange: (data) => {
+            console.log('父组件接收到了子组件数据',data)
+          },
+        },
+        children: {
+          header() {
+            return { type: "h1", children: "我是标题" };
+          },
+          body() {
+            return { type: "div", children: "我是内容" };
+          },
+          footer() {
+            return { type: "p", children: "我是footer" };
+          },
+        }
+      };
+
+      effect(() => {
+        renderer.render(ComVnode, app);
+      });
+    </script>
+  </body>
+</html>
